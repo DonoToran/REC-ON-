@@ -17,11 +17,11 @@ struct ContentView: View {
                     Text ("Home")
                 }
             
-            ChatView()
-                .tabItem {
-                    Image(systemName: "message.fill")
-                    Text ("Chats")
-                }
+//            ChatView()
+//                .tabItem {
+//                    Image(systemName: "message.fill")
+//                    Text ("Chats")
+//                }
         }
             
         

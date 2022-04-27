@@ -6,183 +6,203 @@
 //
 
 import SwiftUI
+import WebKit
 
 struct SignUpView: View {
     
-    @State var name = ""
+    let didCompleteSignUpProcess: () -> ()
+    
     @State var username = ""
     @State var email = ""
     @State var password = ""
-    @State var maxCircleHeight: CGFloat = 0
+    @State var image: UIImage?
+    @State var shouldShowImagePicker = false
+    @State var errorMessage = ""
     
-   // @StateObject private var vm = SignUpViewModelImpl(
-     //   service: SignUpServiceImpl()
-   // )
+    
     
     var body: some View {
-        VStack{
+        ZStack {
             
-            //Top Rings -- MaxHeight will be screen size
-            //GeoReader bc other screens have different sizes
-            GeometryReader{ proxy -> AnyView in
+            Color("Yellow").edgesIgnoringSafeArea(.all)
+                .navigationTitle("Sign Up")
+                .foregroundColor(.black)
+            
+            ScrollView {
                 
-                let height = proxy.frame(in: .global).height
+                Spacer()
+                Spacer()
                 
-                DispatchQueue.main.async {
-                    if maxCircleHeight == 0 {
-                        maxCircleHeight = height
-                    }
-                }
-                    return AnyView(
-                        ZStack{
-                            Circle()
-                                .fill(Color("Blue"))
-                                .offset(x: getRec().width / 2, y: -height / 1.3 )
-
-                            Circle()
-                                .fill(Color("Blue"))
-                                .offset(x: -getRec().width / 2, y: -height / 1.5)
-                            Circle()
-                                .fill(Color("Yellow"))
-                                .offset(y: -height / 1.3)
-                                .rotationEffect(.init(degrees: -5))
+                VStack(spacing: 16) {
+                    
+                    //User Image
+                    Button(action: {
+                        shouldShowImagePicker.toggle()
+                    },
+                           label: {
+                        VStack {
+                            if let image = self.image {
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 128, height: 128)
+                                    .cornerRadius(64)
+                            } else {
+                                Image(systemName: "person.fill")
+                                    .foregroundColor(Color("Blue"))
+                                    .font(.system(size: 64))
+                                    .padding()
+                            }
                         }
-                    )
-                
-            }
-            .frame(maxHeight: getRec().width)
-            
-            VStack{
-                
-                Text("Sign Up")
-                    .font(.title)
-                    .fontWeight(.bold)
+                        .overlay(RoundedRectangle(cornerRadius: 64)
+                                    .stroke(Color("Blue"), lineWidth: 3))
+                        
+                    })
+                        .padding(.bottom)
+                    
+                    
+                    //Username and Password
+                    Group {
+                        //Username
+                        SuperTextField(
+                            placeholder: Text("Username").foregroundColor(Color("Blue")), text: $username
+                        )
+                            .autocapitalization(.none)
+                        
+                        //Email
+                        SuperTextField(
+                            placeholder: Text("Email").foregroundColor(Color("Blue")), text: $email
+                        )
+                            .textContentType(.emailAddress)
+                            .keyboardType(.emailAddress)
+                            .autocapitalization(.none)
+                        
+                        
+                        //Password
+                        SuperSecureField (
+                            placeholder: Text("Password").foregroundColor(Color("Blue")), text: $password
+                        )
+                    }
+                    .padding(12)
                     .foregroundColor(.black)
-                    //Letter Spacing
-                    .kerning(1.9)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                
-                //Name and Username Email and Password
-                VStack(alignment: .leading, spacing: 8, content: {
+                    .background(.white)
                     
                     
+                    //Sign In button
+                    Button(action: {
+                        createNewAccount()
+                    }, label: {
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding()
+                            .background(Color("Blue"))
+                            .clipShape(Circle())
+                        //Shadow for button
+                        
+                    })
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical)
+                        .padding(.top, 40)
+                        .padding(.horizontal, 10)
                     
-                    TextField("Name", text: $name)
-                    //Increasing font size and changing text color
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(.black)
-                        .padding(.top,5)
+                    Text(self.errorMessage)
+                        .foregroundColor(.red)
+                }
                 
-                    Divider()
-                })
-                    .padding(.top, 25)
+                .padding()
                 
-                VStack(alignment: .leading, spacing: 8, content: {
-                    
-                    TextField("Username", text: $username)
-                    //Increasing font size and changing text color
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(.black)
-                        .padding(.top,5)
-                
-                    Divider()
-                })
-                    .padding(.top, 25)
-                
-                VStack(alignment: .leading, spacing: 8, content: {
-                
-                    TextField("Email", text: $email)
-                    //Increasing font size and changing text color
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(.black)
-                        .padding(.top,5)
-                
-                    Divider()
-                })
-                    .padding(.top, 25)
-                
-                VStack(alignment: .leading, spacing: 8, content: {
-                    
-                    
-                    TextField("Password", text: $password)
-                    //Increasing font size and changing text color
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(.black)
-                        .padding(.top,5)
-                
-                    Divider()
-                })
-                .padding(.top, 20)
-                
-                //vm.signUp() Button Action
-                //Sign In button
-                Button(action: {},
-                       label: {
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color("Blue"))
-                        .clipShape(Circle())
-                    //Shadow for button
-                        .shadow(color: .yellow.opacity(0.6),
-                                radius: 5, x: 0, y: 0)
-                })
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, 25)
             }
-            .padding()
-            //Removing unwanted space
-            .padding(.top, -maxCircleHeight / 1.6)
-            .frame(maxHeight: .infinity, alignment: .top)
         }
-        .overlay(
-            
-            HStack {
-                    
-                Text("Already A Member?")
-                    .fontWeight(.bold)
-                    .foregroundColor(.gray)
-                
-                NavigationLink(destination: LoginView(), label: {
-                
-                    Text("Sign In")
-                        .fontWeight(.semibold)
-                        .foregroundColor(Color("Blue"))
-                })
-                
-                    .navigationBarHidden(true)
-                    
+        .fullScreenCover(isPresented: $shouldShowImagePicker, onDismiss: nil) {
+            ImagePicker(image: $image)
+        }
+    }
+    
+    
+    private func createNewAccount() {
+        if self.image == nil {
+            self.errorMessage = "You must select an avatar image"
+            return
+        }
+        FirebaseManager.shared.auth.createUser(withEmail: email, password: password) {
+            result, err in
+            if let err = err {
+                self.errorMessage = "Failed to create user: \(err)"
+                return
             }
             
-            ,alignment: .bottom
-        )
-        .background(
+            print("Sucessfully created user: \(result?.user.uid ?? "")")
+            self.errorMessage = "Sucessfully created user: \(result?.user.uid ?? "")"
+            
+            self.persistImageToStorage()
+        }
+    }
+    
+    
+    private func persistImageToStorage() {
+        //        let filename = UUID().uuidString
+        guard let uid = FirebaseManager.shared.auth.currentUser?.uid
+        else { return }
         
-            //Bottom circles
-            HStack{
-                
-                Circle()
-                    .fill(Color("Blue"))
-                    .frame(width: 70, height: 70)
-                    .offset(x: -30, y: 0)
-                
-                Spacer(minLength: 0)
-                
-                Circle()
-                    .fill(Color("Yellow"))
-                    .frame(width: 110, height: 110)
-                    .offset(x: 40, y: 20)
-            }
-                .offset(y: getSafeArea().bottom + 30)
+        let ref = FirebaseManager.shared.storage.reference(withPath: uid)
+        
+        guard let imageData = self.image?.jpegData(compressionQuality: 0.5) else { return
             
-            ,alignment: .bottom
-        )
+        }
+        
+        ref.putData(imageData, metadata: nil) { metadata, err in
+            if let err = err {
+                self.errorMessage = "Failed to push image to Storage: \(err)"
+                return
+            }
+            
+            ref.downloadURL { url, err in
+                if let err = err {
+                    self.errorMessage = "Failed to retreive downloadURL \(err)"
+                    return
+                }
+                self.errorMessage = "Successfully stored image with url: \(url?.absoluteString ?? "")"
+                print(url?.absoluteString)
+                
+                guard let url = url else { return }
+                self.storeUserInfo(imageProfileUrl:url)
+            }
+        }
+    }
+    
+    private func storeUserInfo(imageProfileUrl: URL) {
+        
+        guard let uid = FirebaseManager.shared.auth.currentUser?.uid
+        else { return }
+        
+        let userData = ["username": self.username, "email": self.email, "uid": uid, "profileImageUrl": imageProfileUrl.absoluteString]
+        
+        FirebaseManager.shared.firestore.collection("users")
+            .document(uid).setData(userData) { err in
+                if let err = err {
+                    print(err)
+                    self.errorMessage = "\(err)"
+                    return
+                }
+                
+                print("Success")
+                
+                self.didCompleteSignUpProcess()
+            }
         
     }
+    
 }
+
+
 struct SignUpView_Previews: PreviewProvider {
     static var previews: some View {
-        SignUpView()
+        SignUpView(didCompleteSignUpProcess: {
+            
+        })
+            .previewInterfaceOrientation(.portrait)
     }
 }
+
+

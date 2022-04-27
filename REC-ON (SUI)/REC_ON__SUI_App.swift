@@ -7,11 +7,17 @@
 
 import SwiftUI
 
+
 @main
 struct REC_ON__SUI_App: App {
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            
+            MessageList()
+//            LoginView(didCompleteLoginProcess: {
+//
+//            })
         }
     }
 }
